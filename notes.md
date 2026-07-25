@@ -65,7 +65,7 @@ SUBSEP | جداکننده‌ی اندیس‌ها در آرایه‌های چند
 
 نکته: اولویت عملگرها مشابه زبان C است و برای کنترل ترتیب اجرا می‌توان از پرانتز () استفاده کرد.
 
-***Pre/Post Increment & Decrement***
+## Pre/Post Increment & Decrement
 
 ``awk 'BEGIN { a = 10; b = ++a; printf "a = %d, b = %d\n", a, b }'``
 
@@ -75,3 +75,30 @@ SUBSEP | جداکننده‌ی اندیس‌ها در آرایه‌های چند
 
 ``awk 'BEGIN { a = 10; b = a--; printf "a = %d, b = %d\n", a, b }'``
 
+## Logical AND (&&), Logical OR (||):
+
+``awk 'BEGIN { num = 5; if (num >= 0 && num <= 7) printf "%d is in octal format\n", num }'``
+
+``awk 'BEGIN { ch = "\n"; if (ch == " " || ch == "\t" || ch == "\n") print "Current character is whitespace." }'``
+
+## AWK-Regular Expressions
+
+1. One Occurrence (.)
+
+``echo -e "cat\nbat\nfun\nfin\nfan" | awk '/f.n/'``
+
+2. Zero or One Occurrence (?)
+
+``echo -e "Colour\nColor" | awk '/Colou?r/'``
+
+3. Zero or More Occurrence (*)
+
+``echo -e "ca\ncat\ncatt" | awk '/cat*/'``
+
+4. One or More Occurrence (+)
+
+``echo -e "111\n22\n123\n234\n456\n222" | awk '/2+/'``
+
+5. Exclusive Set ([^ ])
+
+``echo -e "Call\nTall\nBall" | awk '/[^CT]all/'``
