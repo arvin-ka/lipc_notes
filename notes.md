@@ -6,8 +6,8 @@
 Begin و End فقط یکبار در ابتدا انتهای فایل اجرا میشوند  
 |دستور | توضیح |
 | :--- | :--- |
-`apt isntall gawk` | برای نصب کردن ابزار
-`yum isntall gawk` | برای نصب کردن ابزار
+`apt install gawk` | برای نصب کردن ابزار
+`yum install gawk` | برای نصب کردن ابزار
 `awk 'Begin{printf "List if Students\n"} {print 0$} End{printf "End of the file\n"}' test.txt` | سینتکس کلی این ابزار  
 
 **در AWK تعدادی Built-in Variables (متغیرهای داخلی) وجود دارند که بسیار پرکاربرد هستند. مهم‌ترین آن‌ها عبارت‌اند از:**
@@ -101,4 +101,22 @@ SUBSEP | جداکننده‌ی اندیس‌ها در آرایه‌های چند
 
 5. Exclusive Set ([^ ])
 
-``echo -e "Call\nTall\nBall" | awk '/[^CT]all/'``
+## استفاده از ساختاری های کنترلی if-else و تعریف شرط در ابزار AWK 
+
+Syntax:
+
+if (condition) {
+
+
+    action-1
+    action-1
+    .
+    .
+    action-n
+
+    
+}
+
+Example:
+
+``awk 'BEGIN {num = 10; if (num % 2 == 0) printf "%d is even number.\n", num }'``
