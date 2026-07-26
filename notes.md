@@ -103,6 +103,8 @@ SUBSEP | جداکننده‌ی اندیس‌ها در آرایه‌های چند
 
 ## استفاده از ساختاری های کنترلی if-else و تعریف شرط در ابزار AWK 
 
+### AWK - IF Else Statement 
+
 Syntax:
 
 if (condition) {
@@ -120,3 +122,58 @@ if (condition) {
 Example:
 
 ``awk 'BEGIN {num = 10; if (num % 2 == 0) printf "%d is even number.\n", num }'``
+
+``awk '{if ($4 >= 17 && $4 <= 20) print $2 " " $3 " has passed with number", $4}' test1.txt``
+
+### AWK -IF-Else-IF Statement
+
+if (condition)
+
+
+action-1
+
+
+else if (condition2)
+
+
+action-2
+
+
+else if (condition3)
+
+
+action-3
+
+Example:
+
+``awk 'BEGIN { a = 30; if (a==10) print "a = 10"; else if (a == 20) print "a = 20"; else if (a == 30) print "a = 30"; }'``
+
+## استفاده از حلقه ها (Loops) در AWK 
+
+### AWK Loops Statements
+
+#### For Loop: for(initialization; condition; increment/decrement)
+
+``awk 'BEGIN { for (i = 1; i <= 5; ++i) print i }'``
+
+#### While Loop: while(condition)
+
+``awk 'BEGIN {i = 1; while (i < 6) { print i; ++i } }'``
+
+#### Do-while Loop: do{action} while (condition)
+
+``awk 'BEGIN {i = 1; do { print i; ++i } while (i < 6) }'``
+
+#### Break,continue & Exit :
+
+``awk 'BEGIN {sum = 0; for (i = 0; i < 20; ++i) { sum += i; if (sum > 50) break; else print "Sum =", sum } }'``
+
+``awk 'BEGIN { for (i = 1; i <= 20; ++i) { if (i % 2 == 0) print i ; else continue } }'``
+
+``awk 'BEGIN { sum = 0; for (i = 0; i < 20; ++i) {sum += i; if (sum > 50) exit(10); else print "Sum =", sum } }'``
+
+
+
+
+
+
