@@ -15,3 +15,18 @@ Shebang بالافاصله در اولین خط و اولین کاراکتر ف�
 
 ترکیب ایندو میشود Shebang
 
+### نحوه استفاده از نتیجه دستورات در Script
+
+برای استفاده از نتیجه یک دستور در دستور دیگر و یا به عنوان متغیر .. روش زیر بکار می رود.
+
+دستور موردنظر.. داخل یک (COMMAND)$ و یا COMMAND در بین `` (علامت Backtick) باید بکار روند
+
+با استفاده از **دستور Tee** می توان یک stout نمایش داد و **هم در فایل** redirect کرد
+
+[user@host ~]$ MYLIST=$(ls -l)
+[user@host ~]$ echo $MYLIST
+total 4 -rw-rw-r-- 1 user1 user1 58 12:24 4 FEB script1
+[user@host ~]$ date | tee output.txt
+Tue Mar 21 03:53:20 PM UTC 2021
+[user@host ~]$ cat output.txt
+Tue Mar 21 03:53:20 PM UTC 2021
