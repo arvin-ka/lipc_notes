@@ -30,3 +30,11 @@ total 4 -rw-rw-r-- 1 user1 user1 58 12:24 4 FEB script1
 Tue Mar 21 03:53:20 PM UTC 2021
 [user@host ~]$ cat output.txt
 Tue Mar 21 03:53:20 PM UTC 2021
+
+Bash = Bourne again shell 
+
+پسوند فایل های شل sh است
+
+
+
+
