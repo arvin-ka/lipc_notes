@@ -80,3 +80,163 @@ fi
 | عملگر | کاربرد |
 |:---|:---|
 -d | بررسی وجود داشتن **دایرکتوری**
+-f | بررسی وجود داشتن **فایل معمولی**
+-e | بررسی وجود داشتن فایل یا دایرکتوری
+-r | بررسی داشتن مجوز **خواندن** (Read)
+-w | بررسی داشتن مجوز **نوشتن** (Write)
+-x | بررسی داشتن مجوز **اجرا** (Execute)
+
+مثال کاربردی:
+
+```
+#!/bin/bash
+
+dir_name="arvin"
+
+if [ -d "$dir_name" ]; then
+    echo "Directory $dir_name exists."
+else
+    echo "Directory $dir_name does not exist. Creating now..."
+    mkdir "$dir_name"
+fi
+```
+
+#### عملگرهای مقایسه‌ای اعداد (Relational Operators)
+
+برای مقایسه مقادیر عددی در Bash از کلیدواژه‌های زیر استفاده می‌شود:
+
+| عملگر | معادل ریاضی | مفهوم |
+| :--- | :--- | :--- |
+-eq | = | Equal (مساوی)
+-ne | != | Not Equal (نامساوی)
+-gt | > | Greater Than (بزرگتر)
+-ge | >= | Greater Than or Equal (بزرگتر یا مساوی)
+-lt | < | Less Than (کوچکتر)
+-le | <= | Less Than or Equal (کوچکتر یا مساوی)
+
+مثال:
+
+```
+#!/bin/bash
+
+num=10
+
+if [ $num -eq 10 ]; then
+    echo "The number is equal to 10"
+fi
+```
+
+#### عملگرهای مقایسه‌ای رشته‌ها (String Operators)
+
+برای مقایسه متون و رشته‌ها:
+
+1. = یا == : برابر بودن دو رشته
+2. != : نابرابر بودن دو رشته
+3. -z : بررسی خالی بودن رشته (طول رشته صفر باشد)
+4. -n : بررسی غیرخالی بودن رشته
+
+مثال:
+
+```
+#!/bin/bash
+
+user_group="arvin"
+
+if [ "$user_group" = "admin" ]; then
+    echo "User group is admin"
+else
+    echo "User group is not admin"
+fi
+```
+#### شرط‌های چندگانه (elif)
+
+```
+#!/bin/bash
+
+user_group="devops"
+
+if [ "$user_group" = "admin" ]; then
+    echo "Group is Admin"
+elif [ "$user_group" = "devops" ]; then
+    echo "Group is DevOps"
+else
+    echo "Unknown Group"
+fi
+```
+### دریافت ورودی از کاربر (Arguments & Read)
+
+#### آرگومان‌های خط فرمان (Positional Parameters)
+
+می‌توان هنگام اجرای اسکریپت، مقادیری را به عنوان ورودی (آرگومان) به آن پاس داد:
+`` ./first.sh arvin admin ``
+
+در داخل اسکریپت با متغیرهای موقعیتی به این پارامترها دسترسی داریم:
+1. $1 : پارامتر اول (arvin)
+2. $2 : پارامتر دوم (admin)
+3. $3 تا $9 : پارامترهای بعدی
+
+```
+#!/bin/bash
+
+user_name=$1
+user_group=$2
+
+echo "Username: $user_name"
+echo "Group: $user_group"
+```
+
+متغیرهای ویژه آرگومان‌ها
+
+1. $# : تعداد کل آرگومان‌های ورودی پاس داده‌شده.
+2. $* یا $@ : نمایش تمام آرگومان‌های ورودی به صورت یکجا.
+
+```
+#!/bin/bash
+
+echo "Total parameters count: $#"
+echo "All parameters list: $*"
+```
+
+#### دریافت ورودی تعاملی با دستور read
+
+گاهی می‌خواهیم حین اجرای اسکریپت، سوالی از کاربر پرسیده شود و ورودی دریافت گردد. سوئیچ -p امکان نمایش پیام تعاملی را فراهم می‌کند:
+
+```
+#!/bin/bash
+
+# دریافت نام کاربری و گروه از کاربر در زمان اجرا
+read -p "Please enter username: " user_name
+read -p "Please enter user group: " user_group
+
+echo "User $user_name added to$user_group group."
+```
+
+### حلقه‌ها (Loops)
+
+#### حلقه for
+
+برای تکرار یک مجموعه دستور روی یک لیست از مقادیر استفاده می‌شود.
+
+#### ۱. پیمایش آرگومان‌ها یا لیست کلمات:
+
+```
+#!/bin/bash
+
+# پیمایش روی کلمات مجزا
+for name in Sarvin Reza Mina; do
+    echo "Hello $name"
+done
+```
+
+#### ۲. پیمایش روی بازه‌ای از اعداد:
+
+```
+#!/bin/bash
+
+# اجرای حلقه از ۱ تا ۱۰
+for i in {1..10}; do
+    echo "Number: $i"
+done
+```
+
+
