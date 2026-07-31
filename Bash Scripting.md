@@ -223,7 +223,7 @@ echo "User $user_name added to$user_group group."
 #!/bin/bash
 
 # پیمایش روی کلمات مجزا
-for name in Sarvin Reza Mina; do
+for name in arvin ka ; do
     echo "Hello $name"
 done
 ```
@@ -239,4 +239,128 @@ for i in {1..10}; do
 done
 ```
 
+#### خواندن خط به خط یک فایل متنی:
+
+فرضا فایلی به نام files.txt داریم، با دستور cat و ترکیب آن با for می‌توان خطوط آن را پیمایش کرد:
+
+```
+#!/bin/bash
+
+for f in $(cat files.txt); do
+    echo "Processing file: $f"
+done
+```
+
+### حلقه while
+
+تا زمانی که یک شرط درست باشد، این حلقه ادامه می‌یابد.
+
+#### حلقه شمارنده با شرط عددی:
+
+```
+#!/bin/bash
+
+i=1
+
+while [ $i -lt 10 ]; do
+    echo "Count: $i"
+    # افزایش مقدار متغیر آی
+    ((i++))
+    # یا ((i+=2)) یا ((i=i*2))
+done
+```
+
+#### پروژه کاربردی: ساخت تعاملی کاربران سیستم
+
+اسکریپت زیر در یک حلقه بی‌پایان (while true) نام کاربری را دریافت کرده و کاربر سیستم ساخت می‌شود. در صورتی که کاربر حرف q را وارد کند، اجرای حلقه متوقف (break) خواهد شد:
+
+```
+#!/bin/bash
+
+while true; do
+    read -p "Enter username to create (or 'q' to quit): " username
+    
+    # شرط خروج از حلقه
+    if [ "$username" = "q" ]; then
+        echo "Exiting user creation tool."
+        break
+    fi
+    
+    # ساخت کاربر در لینوکس
+    sudo adduser "$username"
+    echo "User $username successfully created!"
+done
+```
+
+### توابع (Functions)
+
+برای جلوگیری از تکرار کد، تمیزتر شدن برنامه و ارتقای مدیریت اسکریپت از توابع استفاده می‌شود.
+
+#### تعریف و فراخوانی تابع
+
+```
+#!/bin/bash
+
+# تعریف تابع
+say_hello() {
+    echo "Hello from Sarvin Style Coding!"
+}
+
+# فراخوانی تابع (Call)
+say_hello
+```
+#### ارسال پارامتر به تابع
+
+پارامترهای ورودی تابع دقیقا مثل آرگومان‌های اسکریپت با $1 و $2 داخل تابع دریافت می‌شوند:
+
+```
+#!/bin/bash
+
+# تعریف تابع با دو ورودی
+greet_user() {
+    echo "Hello $1 from $2!"
+}
+
+# فراخوانی با مقادیر مختلف
+greet_user "Sarvin" "Sarvin Style Coding"
+greet_user "Mina" "DevOps Course"
+```
+
+مثال کاربردی: تابع بررسی وجود فایل
+
+```
+#!/bin/bash
+
+check_file_exists() {
+    if [ -f "$1" ]; then
+        echo "File '$1' exists."
+    else
+        echo "File '$1' does NOT exist."
+    fi
+}
+
+check_file_exists "files.txt"
+check_file_exists "non_existing_file.txt"
+```
+
+#### بازگرداندن مقادیر با return و $?
+
+در بش اسکریپت دستور return یک کد وضعیت خروجی (Exit Code بین 0 تا 255) برمی‌گرداند. مقدار برگردانده شده توسط آخرین دستور/تابع اجرا شده، در متغیر ویژه $? ذخیره می‌شود.
+
+```
+#!/bin/bash
+
+sum() {
+    local total=$(($1 + $2))
+    return $total
+}
+
+# فراخوانی تابع
+sum 10 5
+
+# دریافت خروجی تابع با $?
+result=$?
+
+echo "Sum result is: $result"
+```
 
