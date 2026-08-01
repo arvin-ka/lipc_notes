@@ -210,8 +210,20 @@ fi
 ```
 #!/bin/bash
 
-echo "Total parameters count: $#"
-echo "All parameters list: $*"
+echo " $# is params num "
+echo " $* is params "
+user_name=$1
+echo "Username: $user_name"
+
+user_group=$2
+echo "Group: $user_group"
+if [ $user_group = "admin" ]; then
+    echo "Group is Admin"
+elif [ $user_group = "arvin" ]; then
+    echo "Group is arvin"
+else
+    echo "user group something else"
+fi
 ```
 
 #### دریافت ورودی تعاملی با دستور read
