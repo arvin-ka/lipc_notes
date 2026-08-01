@@ -102,7 +102,7 @@ fi
 
 dir_name="arvin"
 
-if [ -d "$dir_name" ]; then
+if [ -d $dir_name ]; then
     echo "Directory $dir_name exists."
 else
     echo "Directory $dir_name does not exist. Creating now..."
@@ -151,7 +151,7 @@ fi
 
 user_group="arvin"
 
-if [ "$user_group" = "admin" ]; then
+if [ $user_group = "admin" ]; then
     echo "User group is admin"
 else
     echo "User group is not admin"
@@ -164,9 +164,9 @@ fi
 
 user_group="devops"
 
-if [ "$user_group" = "admin" ]; then
+if [ $user_group = "admin" ]; then
     echo "Group is Admin"
-elif [ "$user_group" = "devops" ]; then
+elif [ $user_group = "devops" ]; then
     echo "Group is DevOps"
 else
     echo "Unknown Group"
@@ -188,10 +188,18 @@ fi
 #!/bin/bash
 
 user_name=$1
-user_group=$2
-
 echo "Username: $user_name"
+
+user_group=$2
 echo "Group: $user_group"
+if [ $user_group = "admin" ]; then
+    echo "Group is Admin"
+elif [ $user_group = "arvin" ]; then
+    echo "Group is arvin"
+else
+    echo "user group something else"
+fi
+
 ```
 
 متغیرهای ویژه آرگومان‌ها
