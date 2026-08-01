@@ -233,11 +233,18 @@ fi
 ```
 #!/bin/bash
 
-# دریافت نام کاربری و گروه از کاربر در زمان اجرا
-read -p "Please enter username: " user_name
-read -p "Please enter user group: " user_group
+echo "welcome to the bash programming"
+read -p "please enter user name" user_name
+echo "user name is : $user_name"
+read -p "please enter user group : " user_group
+echo "user group is : $user_group"
 
-echo "User $user_name added to$user_group group."
+if [ $user_group = "admin" ]
+then
+       echo"user group is arvin"
+else
+       echo"user group something else"
+fi
 ```
 
 ### حلقه‌ها (Loops)
