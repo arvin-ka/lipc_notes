@@ -91,11 +91,12 @@ dc=company,dc=com (ریشه - اسم شرکت)
  │    └── cn=Reza  (کاربر رضا)
  └── ou=HR (واحد منابع انسانی)
       └── cn=Mina  (کاربر مینا)
+```
 1. DC (Domain Component): دامنه یا ریشه اصلی شرکت (مثلاً company.com).
 2. OU (Organizational Unit): دپارتمان‌ها یا واحدهای سازمان (مثل IT، فروش، مالی).
 3. CN (Common Name): نام فرد یا شیء مشخص (مثل اسم کاربر).
 4. DN (Distinguished Name): آدرس کامل و یکتا برای پیدا کردن یک فرد در این درخت.
-```
+
 مثلاً آدرس کامل آروین می‌شود:
 
 `` cn=Arvin,ou=IT,dc=company,dc=com ``
