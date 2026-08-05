@@ -84,7 +84,7 @@ password    requisite     pam_pwquality.so retry=3 minlen=12 dcredit=-1 ucredit=
 ### ساختار داده‌ها در LDAP (درختی / Tree Structure)
 
 برعکس دیتابیس‌های معمولی (مثل MySQL) که داده‌ها را در جدول (Table) می‌ریزند، LDAP داده‌ها را مثل شاخه‌های یک درخت ذخیره می‌کند:
-
+```
 dc=company,dc=com (ریشه - اسم شرکت)
  ├── ou=IT (واحد فناوری اطلاعات)
  │    ├── cn=Arvin (کاربر آروین)
@@ -95,7 +95,7 @@ dc=company,dc=com (ریشه - اسم شرکت)
 2. OU (Organizational Unit): دپارتمان‌ها یا واحدهای سازمان (مثل IT، فروش، مالی).
 3. CN (Common Name): نام فرد یا شیء مشخص (مثل اسم کاربر).
 4. DN (Distinguished Name): آدرس کامل و یکتا برای پیدا کردن یک فرد در این درخت.
-
+```
 مثلاً آدرس کامل آروین می‌شود:
 
 `` cn=Arvin,ou=IT,dc=company,dc=com ``
