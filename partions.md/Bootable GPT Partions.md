@@ -43,3 +43,37 @@ sudo fdisk /dev/sdb
 
 **الف) فرمت پارتیشن EFI:**
 
+پارتیشن EFI طبق استاندارد UEFI حتماً باید با سیستم‌فایل FAT32 فرمت شود:
+
+``sudo mkfs.vfat -F32 /dev/sdb1``
+
+**ب) فرمت پارتیشن اصلی سیستم‌عامل (Root):**
+
+``sudo mkfs.ext4 /dev/sdb2``
+
+### 4️⃣ ساخت مسیرها و متصل کردن پارتیشن‌ها (Mounting)
+
+برای شبیه‌سازی ساختار نصب سیستم‌عامل بوت‌پذیر:
+
+```
+# ساخت دایرکتوری Root
+sudo mkdir -p /mnt/boot_disk
+
+# اتصال پارتیشن اصلی
+sudo mount /dev/sdb2 /mnt/boot_disk
+
+# ساخت پوشه efi داخل سیستم‌عامل و اتصال پارتیشن EFI
+sudo mkdir -p /mnt/boot_disk/boot/efi
+sudo mount /dev/sdb1 /mnt/boot_disk/boot/efi
+```
+
+### 5️⃣ بررسی و اعتبارسنجی ساختار Bootable
+
+جهت اطمینان از صحت نوع پارتیشن و سیستم‌فایل‌ها:
+
+``lsblk -o NAME,SIZE,FSTYPE,TYPE,PARTTYPENAME /dev/sdb``
+
+خروجی مورد انتظار:
+
+* ا sdb1 دارای سیستم‌فایل vfat و نوع EFI System
+* ا sdb2 دارای سیستم‌فایل ext4 و متصل به ``/mnt/boot_disk``
