@@ -28,6 +28,6 @@
 
 داده‌ها به قطعات کوچک (Data Blocks) تقسیم شده و به طور هم‌زمان روی دیسک‌ها نوشته می‌شوند.
 
-<img width="1040" height="1008" alt="Gemini_Generated_Image_6dmqli6dmqli6dmq" src="https://github.com/user-attachments/assets/05459ab2-3f66-4881-b96e-7e6de8a91aa2" />
+<img width="300" height="1008" alt="Gemini_Generated_Image_6dmqli6dmqli6dmq" src="https://github.com/user-attachments/assets/05459ab2-3f66-4881-b96e-7e6de8a91aa2" />
 
 
