@@ -72,7 +72,7 @@ sudo mount /dev/sdb1 /mnt/practice_disk
 
 ``sudo umount /dev/sdb1``
 
-**(در صورت مواجهه با خطای target is busy از دستور sudo umount -l /dev/sdb1 استفاده کنید).**
+**(در صورت مواجهه با خطای target is busy از دستور ``sudo umount -l /dev/sdb1`` استفاده کنید).**
 
 #### ۲. حذف پارتیشن‌ها
 
