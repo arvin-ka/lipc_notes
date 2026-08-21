@@ -28,6 +28,43 @@
 
 داده‌ها به قطعات کوچک (Data Blocks) تقسیم شده و به طور هم‌زمان روی دیسک‌ها نوشته می‌شوند.
 
-<p align="center"> <img width="400" height="400" alt="Gemini_Generated_Image_6dmqli6dmqli6dmq" src="https://github.com/user-attachments/assets/05459ab2-3f66-4881-b96e-7e6de8a91aa2" />
+<p align="center"> <img width="600" height="400" alt="Gemini_Generated_Image_6dmqli6dmqli6dmq" src="https://github.com/user-attachments/assets/05459ab2-3f66-4881-b96e-7e6de8a91aa2" />
+
+### 2️⃣ RAID 1 (Mirroring)
+
+هر داده‌ای که روی دیسک اول نوشته شود، عیناً روی دیسک دوم کپی (Mirror) می‌شود.
+
+<p align="center"> <img width="600" height="400" alt="Gemini_Generated_Image_yaxxlpyaxxlpyaxx" src="https://github.com/user-attachments/assets/83bfcfde-a510-4d88-861f-0542658fb132" />
+
+### 3️⃣ RAID 5 (Striping with Distributed Parity)
+
+داده‌ها و اطلاعات بازیابی (Parity) به‌صورت چرخشی بین تمام دیسک‌ها پخش می‌شوند.
+
+<p align="center"> <img width="600" height="400" alt="Gemini_Generated_Image_ucoj1mucoj1mucoj" src="https://github.com/user-attachments/assets/062cde26-4769-42bb-b637-edc95835df60" />
+
+### 4️⃣ RAID 6 (Striping with Dual Parity)
+
+مشابه RAID 5 است اما از دو بلاک Parity مجزا (P و Q) استفاده می‌کند.
+
+<p align="center"> <img width="1000" height="400" alt="Gemini_Generated_Image_3aaiz13aaiz13aai" src="https://github.com/user-attachments/assets/ab4b0a01-57c1-43e1-b9d5-21675479542d" />
 
 
+### 🔀 RAIDهای ترکیبی (Nested RAID)
+
+### 1️⃣ RAID 10 (RAID 1+0)
+ترکیب Mirroring و Striping؛ دیسک‌ها ابتدا جفت‌جفت RAID 1 شده و سپس مجموعه آن‌ها RAID 0 می‌شود.
+
+- **حداقل دیسک:** ۴ دیسک
+- **ساختار:** ابتدا دیسک‌ها به صورت RAID 1 آینه‌سازی شده و سپس مجموعه آن‌ها RAID 0 می‌شوند.
+- **مزایا:** سرعت بسیار بالا همراه با امنیت عالی؛ محبوب‌ترین گزینه برای **پایگاه‌های داده (Databases)** و سرورهای حساس.
+- **ظرفیت:** ۵۰٪ مجموع دیسک‌ها.
+
+<p align="center"> <img width="1000" height="400" alt="Gemini_Generated_Image_91oqlb91oqlb91oq" src="https://github.com/user-attachments/assets/94bf5b23-fcf0-454a-b5d9-78c69d72502f" />
+
+### 2️⃣ RAID 50 (RAID 5+0)
+
+- **حداقل دیسک:** ۶ دیسک
+- **ساختار:** ترکیب دو یا چند آرایه RAID 5 به‌صورت Striping (RAID 0).
+- **مزایا:** مناسب برای حجم داده‌های بسیاااار بالا با حفظ سرعت خواندن/نوشتن مناسب.
+
+<p align="center"> <img width="1000" height="400" alt="Gemini_Generated_Image_x7jzflx7jzflx7jz" src="https://github.com/user-attachments/assets/e20c534e-4453-4714-aca9-2f3d6822e0c3" />
