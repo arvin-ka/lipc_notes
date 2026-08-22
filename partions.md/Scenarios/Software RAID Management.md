@@ -30,7 +30,7 @@
 
 ``lsblk``
 
-مطمئن شوید هیچ پارتیشن یا سیستم‌فایلی روی /dev/sdb و /dev/sdc وجود ندارد. (در صورت نیاز می‌توانید signature قبلی دیسک‌ها را پاک کنید):
+مطمئن شوید هیچ پارتیشن یا سیستم‌فایلی روی ``/dev/sdb`` و ``/dev/sdc`` وجود ندارد. (در صورت نیاز می‌توانید signature قبلی دیسک‌ها را پاک کنید):
 
 ```
 sudo wipefs -a /dev/sdb
@@ -39,7 +39,7 @@ sudo wipefs -a /dev/sdc
 
 ### 3️⃣ ساخت آرایه RAID 1
 
-با استفاده از دستور mdadm یک آرایه جدید با نام /dev/md0 ایجاد کنید:
+با استفاده از دستور ``mdadm`` یک آرایه جدید با نام ``/dev/md0`` ایجاد کنید:
 
 ```
 sudo mdadm --create --verbose /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/sdc
@@ -47,10 +47,10 @@ sudo mdadm --create --verbose /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/
 
 توضیح پارامترها:
 
-* --create /dev/md0: نام دستگاه منطقی جدید RAID.
-* --level=1: تعیین سطح RAID (برای RAID 0 عدد 0 و برای RAID 5 عدد 5 قرار دهید).
-* --raid-devices=2: تعداد دیسک‌های فیزیکی شرکت‌کننده در آرایه.
-* /dev/sdb /dev/sdc: مسیر دیسک‌های خام انتخاب‌شده.
+* ``--create /dev/md0``: نام دستگاه منطقی جدید RAID.
+* ``--level=1``: تعیین سطح RAID (برای RAID 0 عدد 0 و برای RAID 5 عدد 5 قرار دهید).
+* ``--raid-devices=2``: تعداد دیسک‌های فیزیکی شرکت‌کننده در آرایه.
+* ``/dev/sdb /dev/sdc``: مسیر دیسک‌های خام انتخاب‌شده.
 
 ### 4️⃣ بررسی وضعیت همگام‌سازی (Sync Status)
 
@@ -64,7 +64,7 @@ sudo mdadm --create --verbose /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/
 
 ### 5️⃣ ساخت سیستم‌فایل و Mount کردن RAID
 
-پس از آماده‌سازی آرایه /dev/md0، آن را مانند یک دیسک معمولی فرمت و متصل کنید:
+پس از آماده‌سازی آرایه ``/dev/md0``، آن را مانند یک دیسک معمولی فرمت و متصل کنید:
 
 ```
 # ایجاد سیستم‌فایل ext4
@@ -92,13 +92,13 @@ df -h /mnt/raid1_storage
 
 ``sudo update-initramfs -u``
 
-ب) افزودن به فایل /etc/fstab
+ب) افزودن به فایل ``/etc/fstab``
 
 ابتدا UUID آرایه ساخته‌شده را پیدا کنید:
 
 ``sudo blkid /dev/md0``
 
-سپس فایل /etc/fstab را ویرایش کرده و خط زیر را به انتهای آن اضافه کنید:
+سپس فایل ``/etc/fstab`` را ویرایش کرده و خط زیر را به انتهای آن اضافه کنید:
 
 ``UUID=YOUR_MD0_UUID  /mnt/raid1_storage  ext4  defaults  0  2``
 
@@ -114,7 +114,7 @@ df -h /mnt/raid1_storage
 
 ``sudo mdadm --detail /dev/md0``
 
-(مشاهده خواهید کرد که وضعیت آرایه degraded شده اما اطلاعات روی /mnt/raid1_storage همچنان در دسترس هستند).
+(مشاهده خواهید کرد که وضعیت آرایه degraded شده اما اطلاعات روی ``/mnt/raid1_storage`` همچنان در دسترس هستند).
 
 ### ۳. جدا کردن دیسک معیوب
 
@@ -124,7 +124,7 @@ df -h /mnt/raid1_storage
 
 ``sudo mdadm --manage /dev/md0 --add /dev/sdc``
 
-با اجرای این دستور، بازسازی خودکار (Rebuilding) اطلاعات روی دیسک جدید آغاز می‌شود. روند را می‌توانید با cat /proc/mdstat دنبال کنید.
+با اجرای این دستور، بازسازی خودکار (Rebuilding) اطلاعات روی دیسک جدید آغاز می‌شود. روند را می‌توانید با ``cat /proc/mdstat`` دنبال کنید.
 
 ### 🧹 پاکسازی و حذف کامل RAID (Cleanup & Reset)
 
