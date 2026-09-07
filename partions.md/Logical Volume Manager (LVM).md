@@ -41,8 +41,11 @@
 * دو دیسک خام به عنوان نمونه (``/dev/sdb`` و /``dev/sdc``)
 * دسترسی ``sudo``
 
-* ### 1️⃣ گام اول: ساخت Physical Volume (PV)
+* ### 1️⃣ گام اول: نصب ابراز lvm در صورت نصب نبودن روی لینوکس و ساخت Physical Volume (PV)
 
+* نصب ابزار lvm :
+
+``sudo apt install lvm2``  
 * ابتدا دیسک‌های خام را برای استفاده در LVM آماده و نشانه‌گذاری کنید:
 
 ``sudo pvcreate /dev/sdb /dev/sdc``
