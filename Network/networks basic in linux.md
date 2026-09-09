@@ -303,11 +303,11 @@ nmcli connection down eth0
 ### 1️⃣ host (ابزار ساده و سریع)
 برای پرس‌وجوی سریع آدرس IP یک دامنه یا اجرای Reverse Lookup (تبدیل IP به نام):
 
-`bash
-# دریافت آدرس IP یک دامنه
+
+ دریافت آدرس IP یک دامنه
 host example.com
 
-# Reverse DNS Lookup (پیدا کردن نام با استفاده از IP)
+Reverse DNS Lookup (پیدا کردن نام با استفاده از IP)
 host 93.184.216.34
 
 ### 2️⃣ ا dig (Domain Information Groper - ابزار استاندارد و پیشرفته)
