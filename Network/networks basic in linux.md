@@ -24,8 +24,8 @@
 
 | لایه TCP/IP | لایه‌های معادل در OSI | پروتکل‌های مرتبط |
 | :--- | :--- | :--- |
-| **Link / Network Access** | Physical + Data Link | Ethernet, Wi-Fi, MAC |
-| **Internet** | Network | IPv4, IPv6, ICMP, ARP |
+| **Link / Network Access** | Physical + Data Link | Ethernet, Wi-Fi, MAC, ARP |
+| **Internet** | Network | IPv4, IPv6, ICMP |
 | **Transport** | Transport | TCP, UDP |
 | **Application** | Session + Presentation + Application | HTTP, HTTPS, SSH, DNS, DHCP |
 
