@@ -228,7 +228,7 @@ uid=1000(arvin) gid=1000(arvin) groups=1000(arvin),27(sudo),1001(developers)
 * ``6`` = ``4 + 2`` (``rw-``)
 * ``5`` = ``4 + 1`` (``r-x``)
 * ``4`` = ``4`` (``r--``)
-  * ``0`` = هیچ دسترسی (``---``)
+* ``0`` = هیچ دسترسی (``---``)
  
 #### مثال ۲۰: دسترسی مرسوم برای پروژه‌های وب (فایل‌ها: 644، دایرکتوری‌ها: 755)
 
@@ -244,3 +244,109 @@ chmod 755 /var/www/html
 
 ``chmod -R 750 /opt/project_files``
 
+### 5️⃣ مدیریت مالکیت فایل‌ها و دایرکتوری‌ها در لینوکس
+
+هر فایل یا دایرکتوری دارای یک کاربر مالک (Owner User) و یک گروه مالک (Owner Group) است.
+
+### 🔹 تغییر کاربر و گروه مالک با ``chown``
+
+#### مثال ۲۲: تغییر مالک فایل به کاربر ``arvin``
+
+``sudo chown arvin report.pdf``
+
+#### مثال ۲۳: تغییر همزمان کاربر و گروه مالک فایل
+
+``sudo chown arvin:developers project.tar.gz``
+
+#### مثال ۲۴: تغییر فقط گروه مالک یک فایل
+
+```
+sudo chown :developers config.json
+# یا استفاده از دستور chgrp:
+sudo chgrp developers config.json
+```
+
+#### مثال ۲۵: تغییر مالکیت به‌صورت بازگشتی (Recursive) روی کل یک پروژه
+
+``sudo chown -R www-data:www-data /var/www/mywebsite``
+
+#### 6️⃣ نکات پیشرفته امنیتی و مجوزهای ویژه
+
+علاوه بر مجوزهای پایه، ۳ مجوز ویژه در لینوکس برای مدیریت امنیت پیشرفته وجود دارند:
+
+1. SUID (Set User ID) - عدد 4000
+
+اگر روی یک فایل اجرایی تنظیم شود، آن فایل فارغ از اینکه چه کسی اجراش می‌کند، با دسترسی مالک فایل اجرا می‌شود.
+
+```
+# مثال: دستور passwd دارای SUID است تا کاربران عادی بتوانند فایل shadow/ را ویرایش کنند
+chmod u+s /usr/local/bin/custom_script
+# یا با عدد:
+chmod 4755 /usr/local/bin/custom_script
+```
+
+2. SGID (Set Group ID) - عدد 2000
+
+اگر روی یک دایرکتوری تنظیم شود، هر فایل جدیدی که داخل آن دایرکتوری ساخته شود، به‌صورت خودکار گروه مالک دایرکتوری را به ارث می‌برد (فوق‌العاده کاربردی برای پروژه‌های تیمی).
+
+```
+# تنظیم SGID روی دایرکتوری اشتراکی تیم توسعه
+sudo chmod g+s /shared/developer_docs
+# یا با عدد:
+sudo chmod 2775 /shared/developer_docs
+```
+
+3. Sticky Bit - عدد 1000
+
+اگر روی یک دایرکتوری تنظیم شود، کاربران فقط می‌توانند فایل‌های متعلق به خودشان را حذف کنند (حتی اگر دسترسی نوشتن روی دایرکتوری داشته باشند).
+
+* بهترین مثال: دایرکتوری ``/tmp`` در سیستم‌عامل.
+
+```
+# تنظیم Sticky Bit روی دایرکتوری عمومی
+sudo chmod +t /shared/public_folder
+# یا با عدد:
+sudo chmod 1777 /shared/public_folder
+```
+
+### 🧪 سناریوی عملی جامع (Real-World Practical Lab)
+
+صورت مسئله:
+
+دایرکتوری ``/srv/project_alpha`` را برای تیم توسعه بسازید به‌طوری‌که:
+
+1. گروه جدیدی به نام ``alpha_team`` ایجاد شود.
+2. کاربران ``alice`` و ``bob`` عضوی از این گروه باشند.
+3. مالک دایرکتوری کاربر ``root`` و گروه آن ``alpha_team`` باشد.
+4. اعضای گروه امکان ایجاد و ویرایش فایل‌ها را داشته باشند.
+5. فایل‌های جدید ساخته‌شده به‌طور خودکار متعلق به گروه ``alpha_team`` شوند (SGID).
+6. سایر کاربران سیستم هیچ دسترسی به این دایرکتوری نداشته باشند.
+
+```
+# ۱. ساخت گروه
+sudo groupadd alpha_team
+
+# ۲. ساخت کاربران و افزودن به گروه
+sudo useradd -m -s /bin/bash alice
+sudo useradd -m -s /bin/bash bob
+sudo usermod -aG alpha_team alice
+sudo usermod -aG alpha_team bob
+
+# ۳. ساخت دایرکتوری پروژه
+sudo mkdir -p /srv/project_alpha
+
+# ۴. تنظیم مالکیت کاربر و گروه
+sudo chown -R root:alpha_team /srv/project_alpha
+
+# ۵. تنظیم دسترسی‌ها (770) + فعال‌سازی SGID (2770)
+sudo chmod 2770 /srv/project_alpha
+
+# ۶. بررسی و اعتبارسنجی خروجی
+ls -ld /srv/project_alpha
+```
+
+خروجی مورد انتظار:
+
+``drwxrws--- 2 root alpha_team 4096 Sep 14 14:45 /srv/project_alpha``
+
+(حرف ``s`` در بخش گروه نشان‌دهنده فعال بودن SGID است).
