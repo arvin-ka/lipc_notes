@@ -60,12 +60,12 @@ nameserver 1.1.1.1
 search mydomain.local
 ```
 
-* ا nameserver: آدرس IP سرور DNS را مشخص می‌کند (تا ۳ سرور قابل تعریف است).
-* ه search: پسوند دامنه پیش‌فرض را برای نام‌های کوتاه تنظیم می‌کند (مثلاً اگر ping server1 را بزنید، سیستم server1.mydomain.local را جستجو می‌کند).
+* ا ``nameserver``: آدرس IP سرور DNS را مشخص می‌کند (تا ۳ سرور قابل تعریف است).
+* ا ``search``: پسوند دامنه پیش‌فرض را برای نام‌های کوتاه تنظیم می‌کند (مثلاً اگر ``ping server1`` را بزنید، سیستم ``server1.mydomain.local`` را جستجو می‌کند).
 
-### 🔹 روش دوم: سرویس systemd-resolved (توزیع‌های جدید دبیان/اوزونتو)
+### 🔹 روش دوم: سرویس ``systemd-resolved`` (توزیع‌های جدید دبیان/اوزونتو)
 
-در سیستم‌های مدرن، فایل /etc/resolv.conf اغلب یک لینک نمادین (Symlink) به سرویس systemd-resolved است و نباید مستقیماً ویرایش شود.
+در سیستم‌های مدرن، فایل ``/etc/resolv.conf`` اغلب یک لینک نمادین (Symlink) به سرویس ``systemd-resolved`` است و نباید مستقیماً ویرایش شود.
 
 تنظیم از طریق فایل اصلی:
 
@@ -84,7 +84,7 @@ Domains=mydomain.local
 
 ``sudo systemctl restart systemd-resolved``
 
-### 🔹 روش سوم: ابزار nmcli (NetworkManager - توزیع‌های RHEL/CentOS/Rocky)
+### 🔹 روش سوم: ابزار ``nmcli`` (NetworkManager - توزیع‌های RHEL/CentOS/Rocky)
 
 اگر سیستم از NetworkManager استفاده می‌کند، بهترین روش اعمال تنظیمات از طریق CLI آن است:
 
@@ -100,19 +100,19 @@ sudo nmcli connection modify eth0 ipv4.ignore-auto-dns yes
 sudo nmcli connection up eth0
 ```
 
-### 🔹 اولویت‌بندی تبدیل نام (/etc/nsswitch.conf)
+### 🔹 اولویت‌بندی تبدیل نام (``/etc/nsswitch.conf``)
 
-ترتیب بررسی نام‌ها (مثلاً اول فایل /etc/hosts بررسی شود یا DNS Server) در فایل /etc/nsswitch.conf مشخص می‌شود:
+ترتیب بررسی نام‌ها (مثلاً اول فایل ``/etc/hosts`` بررسی شود یا DNS Server) در فایل ``/etc/nsswitch.conf`` مشخص می‌شود:
 
 ``hosts: files dns``
 
-در خط بالا، ابتدا سیستم فایل /etc/hosts محلی را می‌خواند و در صورت عدم پیدا شدن، به سراغ DNS Server می‌رود.
+در خط بالا، ابتدا سیستم فایل ``/etc/hosts`` محلی را می‌خواند و در صورت عدم پیدا شدن، به سراغ DNS Server می‌رود.
 
 ### 3️⃣ معرفی انواع DNS Serverها و نرم‌افزارهای مختلف
 
 ا DNS Serverها بر اساس وظیفه‌ای که در شبکه بر عهده دارند به دسته‌های زیر تقسیم می‌شوند:
 
-1. ا Recursive Resolver (پاسخگوی بازگشتی): درخواست کلاینت را می‌گیرد و تمام درخت DNS را طی می‌کند تا پاسخ را پیدا کند و به کلاینت تحویل دهد (مانند 8.8.8.8).
+1. ا Recursive Resolver (پاسخگوی بازگشتی): درخواست کلاینت را می‌گیرد و تمام درخت DNS را طی می‌کند تا پاسخ را پیدا کند و به کلاینت تحویل دهد (مانند ``8.8.8.8``).
 2. ا Authoritative Server (سرور مرجع): پاسخ‌های قطعی و رسمی برای یک Zone خاص را در اختیار دارد.
 3. ا Master (Primary) Node: سرور اصلی که فایل‌های اصلی Zone روی آن قرار دارد و ویرایش داده‌ها فقط روی آن انجام می‌شود.
 4. ا Slave (Secondary) Node: کپی همگام‌سازی‌شده از Master دریافت می‌کند و برای بالا بردن پایداری (Redundancy) و توزیع بار (Load Balancing) استفاده می‌شود.
@@ -142,16 +142,16 @@ sudo nmcli connection up eth0
 
 ### 4️⃣ پیاده‌سازی عملی Master Node و Slave Node با BIND9
 
-در این سناریو، یک شبکه سازمانی با دامنه داخلی lab.local را پیاده‌سازی می‌کنیم.
+در این سناریو، یک شبکه سازمانی با دامنه داخلی``lab.local`` را پیاده‌سازی می‌کنیم.
 
 ### 📐 مشخصات سناریو:
 
-* Domain Name: lab.local
-* Subnet: 192.168.10.0/24
-* Master Node IP: 192.168.10.10 (Hostname: dns-master)
-* Slave Node IP: 192.168.10.11 (Hostname: dns-slave)
+* Domain Name: ``lab.local``
+* Subnet: ``192.168.10.0/24``
+* Master Node IP: ``192.168.10.10`` (Hostname: ``dns-master``)
+* Slave Node IP: ``192.168.10.11`` (Hostname: ``dns-slave``)
 
-### ا 🅰️ بخش اول: کانفیگ سرور Master (192.168.10.10)
+### ا 🅰️ بخش اول: کانفیگ سرور Master (``192.168.10.10``)
 
 ### گام ۱: نصب BIND9
 
@@ -160,7 +160,7 @@ sudo apt update
 sudo apt install bind9 bind9-utils bind9-doc -y
 ```
 
-### گام ۲: تنظیم فایل کانفیگ اصلی (/etc/bind/named.conf.options)
+### گام ۲: تنظیم فایل کانفیگ اصلی (``/etc/bind/named.conf.options``)
 
 این فایل تنظیمات عمومی سرور شامل Forwarderها و دسترسی‌ها را کنترل می‌کند.
 
@@ -195,7 +195,7 @@ options {
 };
 ```
 
-### گام ۳: تعریف Zoneها در Master (/etc/bind/named.conf.local)
+### گام ۳: تعریف Zoneها در Master (``/etc/bind/named.conf.local``)
 
 در این فایل زون مستقیم (Forward Zone) و زون معکوس (Reverse Zone) را معرفی می‌کنیم.
 
@@ -221,7 +221,7 @@ zone "10.168.192.in-addr.arpa" {
 };
 ```
 
-### گام ۴: ایجاد دایرکتوری و ساخت فایل زون مستقیم (db.lab.local)
+### گام ۴: ایجاد دایرکتوری و ساخت فایل زون مستقیم (``db.lab.local``)
 
 ```
 sudo mkdir -p /etc/bind/zones
@@ -256,7 +256,7 @@ mail    IN      A       192.168.10.60
 www     IN      CNAME   web.lab.local.
 ```
 
-### گام ۵: ساخت فایل زون معکوس (db.192.168.10)
+### گام ۵: ساخت فایل زون معکوس (``db.192.168.10``)
 
 ``sudo nano /etc/bind/zones/db.192.168.10``
 
@@ -297,7 +297,7 @@ sudo systemctl restart bind9
 sudo systemctl enable bind9
 ```
 
-### ا 🅱️ بخش دوم: کانفیگ سرور Slave (192.168.10.11)
+### ا 🅱️ بخش دوم: کانفیگ سرور Slave (``192.168.10.11``)
 
 در سرور Slave، نیازی به ساخت فایل‌های زون به‌صورت دستی نیست؛ این فایل‌ها به‌صورت خودکار از سرور Master دریافت (Zone Transfer) و ذخیره می‌شوند.
 
@@ -308,7 +308,7 @@ sudo apt update
 sudo apt install bind9 bind9-utils -y
 ```
 
-### گام ۲: تنظیم فایل کانفیگ عمومی (/etc/bind/named.conf.options)
+### گام ۲: تنظیم فایل کانفیگ عمومی (``/etc/bind/named.conf.options``)
 
 ``sudo nano /etc/bind/named.conf.options``
 
@@ -331,7 +331,7 @@ options {
 };
 ```
 
-### گام ۳: تعریف زون‌ها به عنوان Slave (/etc/bind/named.conf.local)
+### گام ۳: تعریف زون‌ها به عنوان Slave (``/etc/bind/named.conf.local``)
 
 ``sudo nano /etc/bind/named.conf.local``
 
@@ -367,13 +367,13 @@ sudo systemctl enable bind9
 sudo journalctl -u bind9 -f
 ```
 
-در لاگ‌ها جملاتی شبیه به transfer of 'lab.local/IN' from 192.168.10.10#53: Transfer completed مشاهده خواهید کرد.
+در لاگ‌ها جملاتی شبیه به ``transfer of 'lab.local/IN' from 192.168.10.10#53: Transfer completed`` مشاهده خواهید کرد.
 
 ### 5️⃣ تست، عیب‌یابی و بررسی صحت عملکرد
 
 پس از راه‌اندازی کامل Master و Slave، باید عملکرد سرورها را با ابزارهای تست بررسی کنیم.
 
-### 🔹 ۱. ابزار dig (Domain Information Groper)
+### 🔹 ۱. ابزار dig`` (Domain Information Groper)``
 
 الف) تست نگاشت مستقیم (A Record):
 
@@ -401,7 +401,7 @@ web.lab.local.      86400   IN      A       192.168.10.50
 
 ``dig @192.168.10.11 www.lab.local``
 
-### 🔹 ۲. ابزار nslookup
+### 🔹 ۲. ابزار ``nslookup``
 
 ``nslookup mail.lab.local 192.168.10.10``
 
@@ -411,11 +411,11 @@ web.lab.local.      86400   IN      A       192.168.10.50
 
 ``dig @192.168.10.10 lab.local AXFR``
 
-نکته امنیتی: این دستور فقط باید از سمت IP سرور Slave پاسخ داده شود و برای سایر کلاینت‌ها باید پیغام Transfer failed برگرداند.
+نکته امنیتی: این دستور فقط باید از سمت IP سرور Slave پاسخ داده شود و برای سایر کلاینت‌ها باید پیغام ``Transfer failed`` برگرداند.
 
 ### ⚠️ نکات کلیدی در بروزرسانی رکوردها:
 
-هرگاه رکوردی را در سرور Master تغییر می‌دهید، حتماً باید مقدار Serial را در فایل زون افزایش دهید (مثلاً از 2026091401 به 2026091402). سپس سرویس را reload کنید:
+هرگاه رکوردی را در سرور Master تغییر می‌دهید، حتماً باید مقدار ``Serial`` را در فایل زون افزایش دهید (مثلاً از ``2026091401``به ``2026091402``). سپس سرویس را reload کنید:
 
 ``sudo systemctl reload bind9``
 
