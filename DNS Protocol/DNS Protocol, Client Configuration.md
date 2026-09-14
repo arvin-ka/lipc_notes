@@ -151,4 +151,184 @@ sudo nmcli connection up eth0
 * Master Node IP: 192.168.10.10 (Hostname: dns-master)
 * Slave Node IP: 192.168.10.11 (Hostname: dns-slave)
 
-* 
+### ا 🅰️ بخش اول: کانفیگ سرور Master (192.168.10.10)
+
+### گام ۱: نصب BIND9
+
+```
+sudo apt update
+sudo apt install bind9 bind9-utils bind9-doc -y
+```
+
+### گام ۲: تنظیم فایل کانفیگ اصلی (/etc/bind/named.conf.options)
+
+این فایل تنظیمات عمومی سرور شامل Forwarderها و دسترسی‌ها را کنترل می‌کند.
+
+``sudo nano /etc/bind/named.conf.options``
+
+محتوای فایل:
+
+```
+// تعریف لیست دسترسی شبکه‌های مجاز
+acl "allowed_clients" {
+    127.0.0.1;
+    192.168.10.0/24;
+};
+
+options {
+    directory "/var/cache/bind";
+
+    // امنیت: فقط شبکه‌های تعریف شده حق پرس‌وجو دارند
+    allow-query { allowed_clients; };
+
+    // فعال‌سازی قابلیت Recursion برای کاربران شبکه داخلی
+    recursion yes;
+
+    // ارسال درخواست‌های خارج از زون به این سرورها
+    forwarders {
+        8.8.8.8;
+        1.1.1.1;
+    };
+
+    dnssec-validation auto;
+    listen-on-v6 { any; };
+};
+```
+
+### گام ۳: تعریف Zoneها در Master (/etc/bind/named.conf.local)
+
+در این فایل زون مستقیم (Forward Zone) و زون معکوس (Reverse Zone) را معرفی می‌کنیم.
+
+``sudo nano /etc/bind/named.conf.local``
+
+محتوای فایل:
+
+```
+// Forward Zone
+zone "lab.local" {
+    type master;
+    file "/etc/bind/zones/db.lab.local";
+    allow-transfer { 192.168.10.11; }; // مجوز انتقال زون فقط به Slave Node
+    also-notify { 192.168.10.11; };    // اطلاع‌رسانی به Slave هنگام تغییرات
+};
+
+// Reverse Zone
+zone "10.168.192.in-addr.arpa" {
+    type master;
+    file "/etc/bind/zones/db.192.168.10";
+    allow-transfer { 192.168.10.11; };
+    also-notify { 192.168.10.11; };
+};
+```
+
+### گام ۴: ایجاد دایرکتوری و ساخت فایل زون مستقیم (db.lab.local)
+
+```
+sudo mkdir -p /etc/bind/zones
+sudo nano /etc/bind/zones/db.lab.local
+```
+
+محتوای فایل:
+
+```
+$TTL    86400
+@       IN      SOA     ns1.lab.local. admin.lab.local. (
+                              2026091401 ; Serial (Format: YYYYMMDDnn)
+                                   604800 ; Refresh (1 week)
+                                    86400 ; Retry (1 day)
+                                  2419200 ; Expire (4 weeks)
+                                    86400 ) ; Minimum TTL
+;
+; Name Servers (NS Records)
+@       IN      NS      ns1.lab.local.
+@       IN      NS      ns2.lab.local.
+
+; A Records for Name Servers
+ns1     IN      A       192.168.10.10
+ns2     IN      A       192.168.10.11
+
+; Hosts A Records
+@       IN      A       192.168.10.10
+web     IN      A       192.168.10.50
+mail    IN      A       192.168.10.60
+
+; CNAME Record
+www     IN      CNAME   web.lab.local.
+```
+
+### گام ۵: ساخت فایل زون معکوس (db.192.168.10)
+
+``sudo nano /etc/bind/zones/db.192.168.10``
+
+محتوای فایل:
+
+```
+$TTL    86400
+@       IN      SOA     ns1.lab.local. admin.lab.local. (
+                              2026091401 ; Serial
+                                   604800 ; Refresh
+                                    86400 ; Retry
+                                  2419200 ; Expire
+                                    86400 ) ; Minimum TTL
+;
+; Name Servers
+@       IN      NS      ns1.lab.local.
+@       IN      NS      ns2.lab.local.
+
+; PTR Records (Last octet of IP address)
+10      IN      PTR     ns1.lab.local.
+11      IN      PTR     ns2.lab.local.
+50      IN      PTR     web.lab.local.
+60      IN      PTR     mail.lab.local.
+```
+
+### گام ۶: تست سلامت کانفیگ‌ها و راه‌اندازی سرویس در Master
+
+```
+# بررسی سینتکس فایل‌های کانفیگ عمومی
+sudo named-checkconf
+
+# بررسی صحت ساختار فایل‌های زون
+sudo named-checkzone lab.local /etc/bind/zones/db.lab.local
+sudo named-checkzone 10.168.192.in-addr.arpa /etc/bind/zones/db.192.168.10
+
+# ری‌استارت و فعال‌سازی سرویس
+sudo systemctl restart bind9
+sudo systemctl enable bind9
+```
+
+### ا 🅱️ بخش دوم: کانفیگ سرور Slave (192.168.10.11)
+
+در سرور Slave، نیازی به ساخت فایل‌های زون به‌صورت دستی نیست؛ این فایل‌ها به‌صورت خودکار از سرور Master دریافت (Zone Transfer) و ذخیره می‌شوند.
+
+### گام ۱: نصب BIND9 در سرور Slave
+
+```
+sudo apt update
+sudo apt install bind9 bind9-utils -y
+```
+
+### گام ۲: تنظیم فایل کانفیگ عمومی (/etc/bind/named.conf.options)
+
+``sudo nano /etc/bind/named.conf.options``
+
+محتوای فایل:
+
+```
+acl "allowed_clients" {
+    127.0.0.1;
+    192.168.10.0/24;
+};
+
+options {
+    directory "/var/cache/bind";
+    allow-query { allowed_clients; };
+    recursion yes;
+    forwarders {
+        8.8.8.8;
+    };
+    dnssec-validation auto;
+};
+```
+
+
