@@ -331,4 +331,96 @@ options {
 };
 ```
 
+### گام ۳: تعریف زون‌ها به عنوان Slave (/etc/bind/named.conf.local)
 
+``sudo nano /etc/bind/named.conf.local``
+
+محتوای فایل:
+
+```
+// Forward Zone
+zone "lab.local" {
+    type slave;
+    file "/var/cache/bind/db.lab.local"; // مسیر ذخیره‌سازی فایل همگام‌شده
+    masters { 192.168.10.10; };          // آدرس سرور Master
+};
+
+// Reverse Zone
+zone "10.168.192.in-addr.arpa" {
+    type slave;
+    file "/var/cache/bind/db.192.168.10";
+    masters { 192.168.10.10; };
+};
+```
+
+### گام ۴: راه‌اندازی و بررسی دریافت زون در Slave
+
+```
+# بررسی کانفیگ
+sudo named-checkconf
+
+# ری‌استارت سرویس
+sudo systemctl restart bind9
+sudo systemctl enable bind9
+
+# بررسی لاگ‌ها برای اطمینان از انتقال موفق زون (Zone Transfer)
+sudo journalctl -u bind9 -f
+```
+
+در لاگ‌ها جملاتی شبیه به transfer of 'lab.local/IN' from 192.168.10.10#53: Transfer completed مشاهده خواهید کرد.
+
+### 5️⃣ تست، عیب‌یابی و بررسی صحت عملکرد
+
+پس از راه‌اندازی کامل Master و Slave، باید عملکرد سرورها را با ابزارهای تست بررسی کنیم.
+
+### 🔹 ۱. ابزار dig (Domain Information Groper)
+
+الف) تست نگاشت مستقیم (A Record):
+
+``dig @192.168.10.10 web.lab.local``
+
+خروجی نمونه:
+
+```
+;; ANSWER SECTION:
+web.lab.local.      86400   IN      A       192.168.10.50
+```
+
+ب) تست نگاشت معکوس (PTR Record):
+
+``dig @192.168.10.10 -x 192.168.10.50``
+
+خروجی نمونه:
+
+```
+;; ANSWER SECTION:
+50.10.168.192.in-addr.arpa. 86400 IN PTR     web.lab.local.
+```
+
+ج) تست درخواست از سرور Slave:
+
+``dig @192.168.10.11 www.lab.local``
+
+### 🔹 ۲. ابزار nslookup
+
+``nslookup mail.lab.local 192.168.10.10``
+
+### 🔹 ۳. بررسی فرایند Zone Transfer به صورت دستی
+
+برای تست اینکه آیا زون می‌تواند از Master به Slave منتقل شود:
+
+``dig @192.168.10.10 lab.local AXFR``
+
+نکته امنیتی: این دستور فقط باید از سمت IP سرور Slave پاسخ داده شود و برای سایر کلاینت‌ها باید پیغام Transfer failed برگرداند.
+
+### ⚠️ نکات کلیدی در بروزرسانی رکوردها:
+
+هرگاه رکوردی را در سرور Master تغییر می‌دهید، حتماً باید مقدار Serial را در فایل زون افزایش دهید (مثلاً از 2026091401 به 2026091402). سپس سرویس را reload کنید:
+
+``sudo systemctl reload bind9``
+
+سرور Slave با مقایسه عدد Serial متوجه تغییرات شده و زون جدید را دریافت می‌کند.
+
+### 🎯 جمع‌بندی
+
+در این داکیومنت، مفاهیم اولیه و ساختاری پروتکل DNS، نحوه تنظیم کلاینت در توزیع‌های مختلف لینوکس، مقایسه ابزارهای محبوب مانند BIND9 و Unbound و در نهایت پیاده‌سازی کامل سناریوی Master/Slave BIND9 همراه با زون‌های مستقیم و معکوس آموزش داده شد.
