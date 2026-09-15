@@ -126,9 +126,164 @@ zone "example.com" {
 
 ### 🔹 مرحله ۴: ایجاد فایل زون (``/etc/bind/zones/db.example.com``)
 
-نکته حیاتی در Stealth DNS: در رکوردهای ``NS`` داخل فایل زون، نباید نام یا IP سرور Stealth Master نوشته شود! فقط نام سرور عمومی Slave قرار می‌گیرد.\
+نکته حیاتی در Stealth DNS: در رکوردهای ``NS`` داخل فایل زون، نباید نام یا IP سرور Stealth Master نوشته شود! فقط نام سرور عمومی Slave قرار می‌گیرد.
 
 ```
 sudo mkdir -p /etc/bind/zones
 sudo nano /etc/bind/zones/db.example.com
 ```
+
+محتوای فایل زون:
+
+```
+$TTL    86400
+@       IN      SOA     ns1.example.com. admin.example.com. (
+                              2026091501 ; Serial
+                                   604800 ; Refresh
+                                    86400 ; Retry
+                                  2419200 ; Expire
+                                    86400 ) ; Minimum TTL
+;
+; Name Server Record (فقط سرور عمومی DMZ معرفی می‌شود!)
+@       IN      NS      ns1.example.com.
+
+; A Record برای خود Name Server عمومی
+ns1     IN      A       203.0.113.50   ; آدرس عمومی سرور DMZ
+
+; رکوردهای وب‌سایت و سرویس‌ها
+@       IN      A       203.0.113.100  ; آدرس وب‌سایت
+www     IN      CNAME   example.com.
+mail    IN      A       203.0.113.110
+```
+
+### 🔹 مرحله ۵: تست و راه‌اندازی Stealth Master
+
+```
+# بررسی صحت کانفیگ‌ها
+sudo named-checkconf
+sudo named-checkzone example.com /etc/bind/zones/db.example.com
+
+# ری‌استارت سرویس
+sudo systemctl restart bind9
+sudo systemctl enable bind9
+```
+
+### 4️⃣ گام دوم: پیکربندی Public Slave DNS (سرور عمومی در DMZ)
+
+این سرور در DMZ قرار دارد و آدرس IP عمومی آن (``203.0.113.50``) به عنوان ``NS`` رسمی دامنه در ثبت‌کننده (Registrar) معرفی می‌شود.
+
+### 🔹 مرحله ۱: نصب BIND9
+
+```
+sudo apt update
+sudo apt install bind9 bind9-utils -y
+```
+
+### 🔹 مرحله ۲: تنظیمات عمومی (``/etc/bind/named.conf.options``)
+
+``sudo nano /etc/bind/named.conf.options``
+
+تنظیمات:
+
+```
+options {
+    directory "/var/cache/bind";
+
+    // این سرور باید به تمام دنیا (اینترنت) پاسخ دهد
+    allow-query { any; };
+
+    // عدم اجازه حل دامنه‌های دیگر (جلوگیری از Open Resolver شدن)
+    recursion no;
+
+    dnssec-validation auto;
+    listen-on port 53 { any; };
+};
+```
+
+### 🔹 مرحله ۳: تعریف زون به عنوان Slave (``/etc/bind/named.conf.local``)
+
+``sudo nano /etc/bind/named.conf.local``
+
+تنظیمات:
+
+```
+zone "example.com" {
+    type slave;
+    file "/var/cache/bind/db.example.com";
+    
+    // آدرس سرور Stealth Master در شبکه داخلی
+    masters { 10.10.10.10; };
+
+    // هیچکس نباید بتواند زون را از این سرور دانلود کند
+    allow-transfer { none; };
+};
+```
+
+### 🔹 مرحله ۴: راه‌اندازی و دریافت زون در Slave
+
+```
+# بررسی صحت فایل
+sudo named-checkconf
+
+# ری‌استارت سرویس
+sudo systemctl restart bind9
+
+# بررسی لاگ‌ها جهت اطمینان از دریافت فایل زون از Master
+sudo journalctl -u bind9 -f
+```
+
+اگر کانفیگ درست باشد، در لاگ‌ها عبارت زیر را می‌بینید:
+
+``transfer of 'example.com/IN' from 10.10.10.10#53: Transfer completed``
+
+### 5️⃣ تست سناریو، عیب‌یابی و اثبات مخفی بودن Master
+
+برای اطمینان از اینکه معماری Stealth به درستی عمل می‌کند، تست‌های زیر را انجام دهید:
+
+🧪 تست ۱: بررسی پاسخ‌دهی سرور عمومی DMZ
+
+از یک سیستم بیرونی در اینترنت دستور زیر را بزنید:
+
+``dig @203.0.113.50 [www.example.com](https://www.example.com)``
+
+نتیجه انتظار می‌رود: سرور پاسخ ``203.0.113.100`` را به درستی برمی‌گرداند.
+
+### 🧪 تست ۲: استعلام رکوردهای NS (اثبات مخفی بودن Master)
+
+``dig @203.0.113.50 example.com NS``
+
+خروجی:
+
+```
+;; ANSWER SECTION:
+example.com.    86400   IN      NS      ns1.example.com.
+
+;; ADDITIONAL SECTION:
+ns1.example.com. 86400  IN      A       203.0.113.50
+```
+
+نتیجه: هیچ اثری از نام یا آدرس IP سرور اصلی (``10.10.10.10``) در پاسخ وجود ندارد! دنیا فقط سرور DMZ را می‌شناسد.
+
+### 🧪 تست ۳: عدم امکان Zone Transfer از دید هکرها
+
+اگر یک هکر سعی کند کل زون شما را از سرور DMZ دانلود کند:
+
+``dig @203.0.113.50 example.com AXFR``
+
+خروجی:
+
+``; Transfer failed.`` (به دلیل وجود ``allow-transfer { none; }``)
+
+### 🛡️ تنظیمات فایروال پیشنهاد شده (UFW / IPTables)
+
+1. روی سرور Stealth Master (``10.10.10.10``):
+* بستن تمام ورودی‌های اینترنت.
+* فقط باز بودن پورت ``53 TCP/UDP`` از مبدا ``192.168.20.50`` (سرور DMZ).
+2. روی سرور Public Slave (``192.168.20.50``):
+* باز بودن پورت ``53 TCP/UDP`` برای همه (جهت پاسخ به اینترنت).
+* اجازه برقراری ارتباط روی پورت ``53`` فقط به سمت ``10.10.10.10`` برای دریافت updates.
+
+### 🎯 جمع‌بندی
+
+با پیاده‌سازی معماری Stealth (DMZ) DNS Server، شما سرور اصلی مدیریت دامنه‌های خود را در امن‌ترین نقطه شبکه (LAN) مخفی کردید و فقط یک سرور پاسخ‌دهنده Read-Only را در DMZ در معرض اینترنت قرار دادید. این الگوی طراحی، استاندارد طلایی سازمان‌ها برای بالا بردن امنیت و پایداری سرویس DNS است.
+
