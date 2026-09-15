@@ -27,7 +27,7 @@
 3. **SLD (Second-Level Domain):** نام اختصاصی سازمان یا مجموعه مانند `example` در `example.com`.
 4. **Subdomain / Host:** مانند `mail` یا `www` در `www.example.com` (یک زیر شاخه از دامین اصلیمون یعنی همون example.com).
 
-<p align="center"> <img width="600" height="400" alt="Gemini_Generated_Image_vxl2llvxl2llvxl2" src="https://github.com/user-attachments/assets/c139c082-d224-48d8-bcff-2112d3be3517" />
+<p align="center"> <img width="750" height="400" alt="Gemini_Generated_Image_vxl2llvxl2llvxl2" src="https://github.com/user-attachments/assets/c139c082-d224-48d8-bcff-2112d3be3517" />
 
 
 ---
