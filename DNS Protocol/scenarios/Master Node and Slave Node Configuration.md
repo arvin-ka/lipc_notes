@@ -299,3 +299,63 @@ key "transfer-key" {
 	secret "aB3xD7qL9+kF1zM5P...==";
 };
 ```
+
+### 🔹 ۲. قرار دادن کلید در هر دو سرور (Master & Slave)
+
+یک فایل به اسم ``/etc/bind/tsig.key`` روی هر دو سرور ایجاد کرده و بلوک کلید بالا را در آن قرار دهید:
+
+``sudo nano /etc/bind/tsig.key``
+
+مجوز فایل را محدود کنید:
+
+```
+sudo chown root:bind /etc/bind/tsig.key
+sudo chmod 640 /etc/bind/tsig.key
+```
+
+فایل کلید را در ``/etc/bind/named.conf`` هر دو سرور include کنید:
+
+``include "/etc/bind/tsig.key";``
+
+### 🔹 ۳. به‌روزرسانی پیکربندی Master (``named.conf.local``)
+
+```
+zone "network.local" {
+    type master;
+    file "/etc/bind/zones/db.network.local";
+    
+    // فقط در صورت داشتن کلید اجازه انتقال داده شود
+    allow-transfer { key "transfer-key"; };
+    
+    notify yes;
+    also-notify { 192.168.10.11; };
+};
+```
+
+### 🔹 ۴. به‌روزرسانی پیکربندی Slave (``named.conf.local``)
+
+در سرور Slave تعیین می‌کنیم که موقع ارتباط با Master از این کلید استفاده کند:
+
+```
+server 192.168.10.10 {
+    keys { "transfer-key"; };
+};
+
+zone "network.local" {
+    type slave;
+    file "/var/cache/bind/db.network.local";
+    masters { 192.168.10.10; };
+    allow-transfer { none; };
+};
+```
+
+### 7️⃣ تست و عیب‌یابی خطاهای رایج
+
+| نوع خطا / مشکل | علت احتمالی | روش حل |
+| :--- | :--- | :--- |
+|``zone transfer failed: REFUSED`` | عدم تطابق IP یا کلید TSIG در ``allow-transfer`` | بررسی ACLهای سرور Master و صحت کلید TSIG |
+| Slave بروزرسانی نمیشود | عدم افزایش Serial Number روی Master | چک کردن مقدار Serial و افزایش آن، سپس اجرا ``rndc reload`` |
+| ``permission denied`` روی Slave | ذخیره فایل زون در مسافتی غیر از ``/var/cache/bind`` | در سیستم‌عامل‌های دبیانی فقط پوشه ``/var/cache/bind`` مجوز نوشتن برای BIND را دارد
+| عدم دریافت NOTIFY | مسدود بودن پورت 53 UDP/TCP توسط فایروال | اجرای دستور ``sudo ufw allow 53`` روی هر دو سرور |
+
+در این داکیومنت، یک ساختار استاندارد و عملیاتی DNS Master / Slave با BIND9 پیاده‌سازی شد. با به کارگیری فرایند همگام‌سازی خودکار و ایمن‌سازی آن با TSIG Key، سیستم DNS شبکه شما علاوه بر خطاپذیری (Fault Tolerance)، از امنیت بالا در تبادل داده‌ها نیز برخوردار است.
