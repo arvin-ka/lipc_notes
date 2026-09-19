@@ -81,3 +81,22 @@
 * ا (XZ)``J-``: فشرده‌سازی با الگوریتم XZ (پسوند .tar.xz - بیشترین میزان فشرده‌سازی).
 * ا (Preserve Permissions)``p-``: حفظ دسترسی‌ها و مجوزهای اصلی فایل‌ها (Permission).
 * ا (Incremental)``g-``: تعیین فایل وضعیت برای گرفتن بکاپ افزایشی.
+
+### مثال‌های کاربردی دستور ``tar``:
+
+### ۱. بکاپ‌گیری و فشرده‌سازی کامل پوشه لاگ‌ها (``/var/log``):
+
+``sudo tar -cvzf /backup/log_backup_$(date +%Y%m%d).tar.gz /var/log``
+
+* شرح: فایل آرشیوی با نام شامل تاریخ روز (مثلاً ``log_backup_20260919.tar.gz``) از دایرکتوری لاگ‌ها می‌سازد.
+
+### ۲. ساخت آرشیو با حفظ کامل دسترسی‌ها و Ownership (مناسب برای بکاپ سیستم):
+
+``sudo tar -cvzpf /backup/etc_config.tar.gz /etc``
+
+### ۳. استخراج (Restore) فایل پشتیبان در یک مسیر مشخص:
+
+``sudo tar -xvzf /backup/log_backup_20260919.tar.gz -C /tmp/restored_logs/``
+
+### ۵. بکارگیری بکاپ افزایشی (Incremental) با ``tar``:
+
