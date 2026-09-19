@@ -229,5 +229,6 @@ cat /var/log/remote/<Client-Hostname>/auth.log
 در صورت عدم دریافت لاگ‌ها، حتماً فایروال سرور (UFW یا Firewalld) را بررسی کنید و اجازه عبور ترافیک پورت ۵۱۴ روی UDP/TCP را صادر نمایید:
 
 ``sudo ufw allow 514/tcp``
+
 ``sudo ufw allow 514/udp``
 
