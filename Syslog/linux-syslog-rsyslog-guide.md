@@ -148,32 +148,166 @@ local0.*    ^/usr/local/bin/my_script.sh
 
 ### ⚙️ کاراکترهای ویژه و اپراتورها:
 
-* ⚙️ کاراکترهای ویژه و اپراتورها:
-ا ``*.info`` 👈 تمام Facilityها با سطح اهمیت info و بالاتر.
+| کاراکتر / اپراتور | نام و عملکرد | مثال | شرح و معنی مثال |
+| :--- | :--- | :--- | :--- |
+| ``*`` | Wildcard (جایگزین همه): شامل تمامی موارد (همه Facilityها یا همه Priorityها) می‌شود. | ``*.info`` | - تمام Facilityها با سطح اهمیت info و بالاتر. |
+| ``*`` | Wildcard (جایگزین همه): شامل تمامی موارد (همه Facilityها یا همه Priorityها) می‌شود. | ``mail.*`` | - تمامی سطوح اهمیت برای Facility ایمیل. | 
+| ``*`` | Wildcard (جایگزین همه): شامل تمامی موارد (همه Facilityها یا همه Priorityها) می‌شود. | ``*.*`` | - مطلقاً تمامی لاگ‌های سیستم. | 
+| ``none`` | استثنا کردن: نادیده گرفتن و استثنا کردن یک Facility خاص. | ``*.info;mail.none;authpriv.none /var/log/messages`` | تمام لاگ‌های سطح info به بالا ذخیره شوند، به جز لاگ‌های مربوط به ``mail`` و ``authpriv``. |
+| ``,`` | کاما (Comma): ترکیب چند Facility مختلف با یک سطح Priority یکسان. | ``auth,authpriv.info /var/log/auth.log`` | اعمال سطح اهمیت info همزمان برای دو Facility به نام‌های ``auth`` و`` authpriv``.|
+| ``;`` | سیمی‌کالن (Semicolon): جدا کردن و ترکیب چند دستور انتخاب‌گر (Selector) مجزا در یک خط. | ``*.notice;cron.err /var/log/notice.log`` | ذخیره تمامی لاگ‌های notice به بالا به همراه لاگ‌های err به بالای مربوط به ``cron``.|
+| بدون نماد | پیش‌فرض Severity: انتخاب سطح مشخص‌شده و تمام سطوح بالاتر (بحرانی‌تر) از آن. | ``cron.warning`` | شامل سطوح ``warning`` ،``err`` ،``crit`` ،``alert`` و ``emerg`` می‌شود.| 
+| ``=`` | تطابق دقیق (Exact Match): فقط و دقیقاً همان سطح تعیین‌شده (بدون شامل شدن سطوح بالاتر). | ``cron.=warning`` | فقط و فقط پیام‌های سطح ``warning`` مربوط به ``cron`` (بدون سطوح دیگر). |
+| ``!`` | نقیض / استثنا (Negation): شامل تمام سطوح پایین‌تر، اما به استثنای سطح مشخص‌شده و سطوح بالاتر آن. | `` mail.info;mail.!err `` | شامل سطوح ``info`` ،``notice`` و ``warning`` می‌شود، اما ``err`` و سطوح بالاتر از آن را نادیده می‌گیرد.|
 
-ا ``mail.*`` 👈 تمامی سطوح اهمیت برای Facility ایمیل.
+## 6️⃣ بررسی فایل کانفیگ ``/etc/rsyslog.conf`` به همراه مثال‌های جامع
 
-ا ``*.*`` 👈 مطلقاً تمامی لاگ‌های سیستم.
+فایل کانفیگ اصلی در ``/etc/rsyslog.conf`` قرار دارد و کانفیگ‌های تکمیلی در دایرکتوری ``/etc/rsyslog.d/*.conf`` قرار می‌گیرند.
 
-* علامت ``none``: استثنا کردن و نادیده گرفتن یک Facility.
+📝 تحلیل یک نمونه کانفیگ مدرن و خط‌به‌خط:
 
-ا ``*.info;mail.none;authpriv.none    /var/log/messages``
+```
+# ============================================
+# Global Directives (تنظیمات سراسری)
+# ============================================
+global(
+    workDirectory="/var/spool/rsyslog"
+    maxMessageSize="64k"
+)
 
-معنی: تمام لاگ‌های سطح info به بالا ذخیره شوند، به جز لاگ‌های mail و authpriv.
+# ============================================
+# Modules (بارگذاری ماژول‌های ورودی)
+# ============================================
+module(load="imuxsock") # پشتیبانی از سوکت داخلی لینوکس
+module(load="imklog")   # پشتیبانی از دریافت لاگ‌های کرنی لینوکس
 
-* علامت ``,`` (Comma): ترکیب چند Facility با یک Priority یکسان.
+# ============================================
+# Rules / Selectors (قوانین و هدایت لاگ‌ها)
+# ============================================
 
-ا ``auth,authpriv.info    /var/log/auth.log``
+# ۱. لاگ‌های هسته سیستم (Kernel Log)
+kern.*                                                 /var/log/kern.log
 
-* علامت ``;`` (Semicolon): جداکردن چند دستور انتخاب‌گر مختلف در یک خط.
+# ۲. لاگ‌های احراز هویت و ورودهای امنیتی (SSH, sudo, etc)
+auth,authpriv.*                                        /var/log/auth.log
 
-ا``.notice;cron.err    /var/log/notice.log``
+# ۳. لاگ‌های مربوط به Mail Server با بافرینگ برای عدم کندی دیسک
+mail.*                                                -/var/log/mail.log
 
-* اپراتورهای تعیین سطح Severity:
+# ۴. لاگ‌های برنامه‌های زمان‌بندی شده Cron
+cron.*                                                 /var/log/cron.log
 
-بدون علامت: سطح مشخص شده و تمام سطوح بالاتر (بحرانی‌تر) را شامل می‌شود.
+# ۵. ذخیره‌سازی عمومی تمام پیام‌های عادی سیستم به جز لاگ‌های خصوصی و ایمیل
+*.info;mail.none;authpriv.none;cron.none              -/var/log/messages
 
-مثال: ``cron.warning`` شامل warning, err, crit, alert, emerg می‌شود.
+# ۶. ارسال رویدادهای سطح Emergency به ترمینال تمامی کاربران سیستم
+*.emerg                                                :omusrmsg:*
 
-علامت ``=`` (تطابق دقیق): فقط و دقیقاً همان سطح مشخص شده.
+# ۷. فیلتر سفارشی برای برنامه‌ای که از local0 استفاده می‌کند
+local0.err                                             /var/log/custom_app_errors.log
+```
+
+## 7️⃣ راه‌اندازی RSYSLOG به عنوان Log Server مرکزی (Centralized Logging)
+
+در شبکه‌های بزرگ، تمامی سرورها لاگ‌های خود را به یک سرور مرکزی RSYSLOG فرستاده تا آنالیز، نگهداری و بازرسی امنیتی (Auditing) آسان‌تر شود.
+
+```
+[ Client 1 (Web) ]  -- (TCP 514) --\
+                                    ===> [ Central RSYSLOG Server ] ---> /var/log/remote/
+[ Client 2 (DB)  ]  -- (UDP 514) --/
+```
+
+### ا 🛠️ step 1: تنظیمات سرور مرکزی (Log Receiver Server)
+
+فایل ``/etc/rsyslog.conf`` را روی سرور مرکزی ویرایش کنید تا پورت ۵۱۴ باز شود:
+
+``sudo nano /etc/rsyslog.conf``
+
+خطوط زیر را از حالت کامنت خارج کنید (Uncomment):
+
+برای پروتکل UDP (سریع‌تر):
+
+```
+module(load="imudp")
+input(type="imudp" port="514")
+```
+
+برای پروتکل TCP (پایدارتر و امن‌تر):
+
+```
+module(load="imtcp")
+input(type="imtcp" port="514")
+```
+
+تعریف یک Template سفارشی برای ذخیره لاگ‌های ریموت بر اساس نام هاست و تاریخ:
+
+```
+template(name="RemoteLogs" type="string" string="/var/log/remote/%HOSTNAME%/%$YEAR%-%$MONTH%-%$DAY%.log")
+*.* ?RemoteLogs
+```
+
+سرویس را ری‌استارت و فایروال را باز کنید:
+
+```
+sudo systemctl restart rsyslog
+sudo firewall-cmd --add-port=514/tcp --permanent   # CentOS/RHEL
+sudo firewall-cmd --add-port=514/udp --permanent
+sudo firewall-cmd --reload
+```
+
+### 🛠️ ا step 2: تنظیمات کلاینت (Log Sender Client)
+
+روی کلاینت‌هایی که می‌خواهید لاگ خود را به سرور ریموت بفرستند، فایل زیر را بسازید:
+
+``sudo nano /etc/rsyslog.d/send-to-central.conf``
+
+محتویات زیر را اضافه کنید (فرضاً IP سرور مرکزی ``192.168.10.50`` است):
+
+```
+# ارسال تمامی لاگ‌ها با TCP
+*.* @@192.168.10.50:514
+
+# یا اگر می‌خواهید لاگ‌های حساس امنیتی با UDP ارسال شوند:
+# authpriv.* @192.168.10.50:514
+```
+
+اعمال تغییرات روی کلاینت:
+
+``sudo systemctl restart rsyslog``
+
+## 8️⃣ ابزارها و دستورات کاربردی برای تست، دستکاری و عیب‌یابی لاگ‌ها
+
+### ۱. دستور ``logger`` (تولید لاگ سفارشی جهت تست)
+
+ابزار ``logger`` به شما امکان می‌دهد مستقیماً از طریق خط فرمان پیام‌های سفارشی با Facility و Priority دلخواه به RSYSLOG تزریق کنید:
+
+```
+# ارسال یک پیام تست ساده
+logger "This is a simple test log message"
+
+# ارسال یک پیام با تعیین Facility و Priority مشخص (مثلاً authpriv.warning)
+logger -p authpriv.warning "Unauthorized attempt detected on port 8080"
+
+# ارسال لاگ با یک Tag یا نام مشخص
+logger -t MY_CUSTOM_APP -p local0.err "Database connection failed!"
+```
+
+### ۲. بررسی پیام‌های دریافتی به صورت زنده
+
+برای مشاهده زنده تغییرات لاگ‌ها:
+
+```
+tail -f /var/log/syslog       # در Ubuntu/Debian
+tail -f /var/log/messages     # در CentOS/RHEL/Fedora
+```
+
+### ۳. بررسی صحت کانفیگ RSYSLOG بدون ری‌استارت
+
+برای اینکه مطمئن شوید فایل کانفیگ شما خطای Syntax ندارد:
+
+``rsyslogd -N1``
+
+اگر خطایی در خروجی مشاهده نشود، کانفیگ صحیح است.
+
+### ۴. بررسی وضعیت سرویس RSYSLOG
 
