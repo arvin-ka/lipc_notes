@@ -304,10 +304,12 @@ tail -f /var/log/messages     # در CentOS/RHEL/Fedora
 ### ۳. بررسی صحت کانفیگ RSYSLOG بدون ری‌استارت
 
 برای اینکه مطمئن شوید فایل کانفیگ شما خطای Syntax ندارد:
-
 ``rsyslogd -N1``
 
 اگر خطایی در خروجی مشاهده نشود، کانفیگ صحیح است.
 
 ### ۴. بررسی وضعیت سرویس RSYSLOG
+
+``sudo systemctl status rsyslog``
+
 
