@@ -124,3 +124,184 @@ scp [options] [source] [destination]
 | ``chown user file`` | تغییر مالک فایل روی سرور 
 | ``exit``یا ``quit`` |  خروج از محیط تعاملی SFTP
 
+مثال‌های سناریومحور در محیط SFTP:
+
+سناریو ۱: دانلود یک پوشه کامل از سرور به کلاینت
+
+``sftp> get -r /var/www/mywebsite /home/localuser/Desktop/``
+
+سناریو ۲: آپلود چندین فایل با استفاده از Wildcard (``*``)
+
+``sftp> put *.png /var/www/html/images/``
+
+سناریو ۳: ادامه دادن یک دانلود قطع‌شده (Resume Download)
+
+اگر حین دانلود فایل حجم بالا اتصال قطع شد، می‌توانید از دستور ``reget`` استفاده کنید:
+
+``sftp> reget large_database_backup.sql``
+
+برای آپلود قطع شده نیز از ``reput`` استفاده می‌شود:
+
+``sftp> reput large_video.mp4``
+
+### ۴. پیکربندی حرفه‌ای SFTP Chroot Jail (محدودسازی کاربران به یک پوشه مشخص)
+
+در حالت عادی، وقتی کاربری از طریق SFTP متصل می‌شود، می‌تواند تمام پوشه‌های سیستم‌عامل (مانند ``/etc،`` ``/var`` و...) را بر اساس دسترسی‌های کاربر لینوکس مشاهده کند.
+
+برای افزایش امنیت سرورهای میزبانی یا اشتراک فایل، می‌توانیم کاربران SFTP را در یک محیط محصور به نام Chroot Jail زندانی کنیم. در این حالت کاربر فقط پوشه اختصاصی خود را می‌بیند و به شل لینوکس (Bash/SSH Terminal) نیز دسترسی نخواهد داشت.
+
+```
++-------------------------------------------------------------+
+|                      Linux File System                      |
+|  / (Root)                                                   |
+|  ├── etc/                                                   |
+|  ├── var/                                                   |
+|  └── sftp_users/                                            |
+|      └── sftp_arvin/  <=== [ARVIN IS JAILED HERE]          |
+|          ├── uploads/ (Writable)                            |
+|          └── (User cannot go above sftp_arvin directory)    |
++-------------------------------------------------------------+
+```
+
+### گام به گام: پیاده‌سازی SFTP Chroot Jail
+
+### گام اول: ایجاد گروه کاربری و کاربر جدید
+
+۱. ایجاد یک گروه اختصاصی برای کاربران SFTP:
+
+``sudo groupadd sftp_users``
+
+۲. ایجاد کاربر جدید بدون دسترسی به شل لینوکس (با تنظیم شل روی ``/sbin/nologin`` یا ``/bin/false``):
+
+``sudo useradd -g sftp_users -d /sftp_users/arvin_sftp -s /sbin/nologin arvin_sftp``
+
+۳. تنظیم کلمه عبور برای کاربر:
+
+``sudo passwd arvin_sftp``
+
+گام دوم: ساخت ساختار پوشه‌ها و تنظیم صحیح مجوزها (Permissions)
+
+قانون حیاتی Chroot در OpenSSH: پوشه‌ای که به عنوان Rootِ Chroot تعیین می‌شود (در اینجا ``/sftp_users/arvin_sftp``) باید حتماً متعلق به کاربر ``root`` باشد و هیچ گروه یا کاربر دیگری نباید مجوز نوشتن (Write) در آن داشته باشد (سطح دسترسی حداکثر ``755``).
+
+۱. ساخت دایرکتوری‌های مورد نیاز:
+
+``sudo mkdir -p /sftp_users/arvin_sftp/uploads``
+
+۲. تنظیم مالکان و مجوزهای دایرکتوری اصلی (Chroot Root):
+
+```
+sudo chown root:root /sftp_users/arvin_sftp
+sudo chmod 755 /sftp_users/arvin_sftp
+```
+
+۳. تنظیم مالکان و مجوزهای دایرکتوری داخل آن (پوشه‌ای که کاربر اجازه آپلود دارد):
+
+```
+sudo chown arvin_sftp:sftp_users /sftp_users/arvin_sftp/uploads
+sudo chmod 755 /sftp_users/arvin_sftp/uploads
+```
+
+### گام سوم: ویرایش تنظیمات فایل ``/etc/ssh/sshd_config``
+
+فایل اصلی پیکربندی SSH را باز کنید:
+
+``sudo nano /etc/ssh/sshd_config``
+
+۱. خط زیر را پیدا کرده و آن را کامنت کنید (با گذاشتن ``#`` در ابتدای آن):
+
+``# Subsystem sftp /usr/lib/openssh/sftp-server``
+
+۲. خط زیر را به جای آن اضافه کنید (استفاده از ``internal-sftp`` که کارایی بهتری دارد و نیاز به فایل‌های جانبی داخل chroot ندارد):
+
+``Subsystem sftp internal-sftp``
+
+۳. در انتهای انتهای فایل ``sshd_config`` بلوک تنظیمات گروه ``sftp_users`` را اضافه کنید:
+
+```
+Match Group sftp_users
+    ChrootDirectory /sftp_users/%u
+    ForceCommand internal-sftp
+    AllowTcpForwarding no
+    X11Forwarding no
+    PasswordAuthentication yes
+```
+
+توضیح متغیرها و پارامترها:
+
+* ا ``Match Group sftp_users``: تمام دستورات زیر فقط روی اعضای این گروه اعمال می‌شود.
+* ا ``ChrootDirectory /sftp_users/%u``: مسیر زندانی شدن کاربر. عبارت %u به طور خودکار با نام‌کاربری وارد شده جایگزین می‌شود.
+* ا `` ForceCommand internal-sftp``: کاربر را مجبورد می‌سازد فقط از پروتکل SFTP استفاده کند و دسترسی به ترمینال SSH کاملاً مسدود می‌شود.
+* ا ``AllowTcpForwarding no`` و ``X11Forwarding no``: غیرفعال‌سازی توانایی ایجاد تونل شبکه‌ای جهت ارتقای امنیت.
+
+گام چهارم: تست صحت کانفیگ و ری‌استارت سرویس SSH
+
+۱. بررسی صحت دستورات وارد شده در فایل کانفیگ:
+
+``sudo sshd -t``
+
+اگر هیچ خروجی یا خطایی نمایش داده نشد، کانفیگ صحیح است.
+
+۲. ری‌استارت سرویس SSH:
+
+```
+sudo systemctl restart ssh
+# یا در توزیع‌های مبتنی بر ردت:
+sudo systemctl restart sshd
+```
+
+گام پنجم: تست عملکرد Chroot Jail
+
+۱. تلاش برای اتصال از طریق SSH عادی (ترمینال):
+
+``ssh arvin_sftp@192.168.1.100``
+
+نتیجه انتظار می‌رود: اتصال قطع شده و پیامی مبنی بر عدم امکان اجرای شل نمایش داده می‌شود (This account is currently not available).
+
+۲. اتصال از طریق SFTP:
+
+``sftp arvin_sftp@192.168.1.100``
+
+پس از ورود، دستور ``pwd`` را بزنید. خروجی باید مسیر ``/`` را نشان دهد. تلاش کنید به بالاتر بروید (``cd ..``). مشاهده خواهید کرد که امکان خروج از مسیر تعیین‌شده وجود ندارد.
+
+تلاش برای آپلود در پوشه ریشه Chroot شکست خواهد خورد اما آپلود در پوشه ``uploads`` با موفقیت انجام می‌شود:
+
+```
+sftp> cd /uploads
+sftp> put my_test_file.txt
+```
+
+### ۵. اتصال به SFTP از طریق ابزارهای گرافیکی (GUI Clients)
+
+برای کاربران عادی یا مدیرانی که محیط گرافیکی را ترجیح می‌دهند، ابزارهای قدرتمندی وجود دارد:
+
+### ۱. نرم‌افزار FileZilla
+1. برنامه FileZilla را باز کنید.
+2. از منوی بالا به مسیر ``File -> Site Manager`` بروید.
+3. یک سایت جدید ایجاد کرده و پارامترها را تنظیم کنید:
+  * Protocol: SFTP - SSH File Transfer Protocol
+  * Host: آدرس IP سرور (مثلاً ``192.168.1.100``)
+  * Port: 22 (یا پورت اختصاصی SSH شما)
+  * Logon Type: Normal (یا Key File در صورت استفاده از کلید SSH)
+  * User: نام کاربری (مثلاً ``arvin_sftp``)
+  * Password: رمز عبور کاربر
+4. روی Connect کلیک کنید.
+
+### ۲. نرم‌افزار WinSCP (مخصوص ویندوز)
+
+1. نرم‌افزار WinSCP را اجرا کنید.
+2. در پنجره Login:
+  * File protocol: SFTP
+  * Host name: آدرس IP سرور
+  * Port number: 22
+  * User name: نام کاربری
+  * Password: رمز عبور
+3. در صورت نیاز به کلید خصوصی (Private Key): به بخش Advanced -> SSH -> Authentication بروید و فایل ``.ppk`` کلید خود را معرفی کنید.
+4. روی ``Login`` کلیک کنید.
+
+### ۶. سخت‌سازی و ارتقای امنیت سرویس انتقال فایل (Security Hardening)
+
+برای اطمینان از اینکه سرویس SFTP/SCP شما در برابر هملات و نفوذ مقاوم است، نکات زیر را اعمال کنید:
+
+۱. اجباری کردن احراز هویت با کلید SSH (Public Key Authentication)
+
+
