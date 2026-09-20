@@ -304,4 +304,49 @@ sftp> put my_test_file.txt
 
 ۱. اجباری کردن احراز هویت با کلید SSH (Public Key Authentication)
 
+ورود مبتنی بر رمز عبور را غیرفعال کرده و کاربران را مجبور به استفاده از کلید کنید.
+
+در فایل ``/etc/ssh/sshd_config:``
+
+```
+PasswordAuthentication no
+PubkeyAuthentication yes
+```
+
+۲. تغییر پورت پیش‌فرض SSH/SFTP
+
+تغییر پورت از ۲۲ به یک پورت بالاتر (مثلاً ۴۵۲۲۲) اکثر اسکنرهای اتوماتیک را ناکام می‌گذارد.
+
+``Port 45222``
+
+۳. محدود کردن دسترسی بر اساس IP در فایروال
+
+اگر اتصالات SFTP فقط از دفتر یا IP مشخصی انجام می‌شود، مابقی IPها را مسدود کنید.
+
+* با فایروال UFW:
+
+``sudo ufw allow from 203.0.113.15 to any port 22 proto tcp``
+
+۴. استفاده از سیستم مانیتورینگ Fail2Ban
+
+سیستم Fail2Ban تلاش‌های ناموفق برای ورود به SFTP را شناسایی و IP مهاجم را مسدود می‌کند.
+
+### ۷. عیب‌یابی (Troubleshooting) خطاهای متداول
+
+| خطای مشاهده شده | علت احتمالی | راهکار برطرف‌سازی |
+| :--- | :--- | :--- |
+| ``Write failed: broken pipe`` | قطع شدن ناگهانی اتصال به دلیل Timeout شبکه | افزودن ``ClientAliveInterval 60`` به فایل ``sshd_config``. |
+| ``fatal: bad ownership or permissions for chroot directory`` | مالکیت یا دسترسی دایرکتوری اصلی Chroot اشتباه است. | دایرکتوری اصلی Chroot حتماً باید متعلق به ``root:root`` با مجوز ``755`` باشد.|
+|``Permission denied (publickey,password)`` | نام کاربری یا کلمه عبور اشتباه است یا کلید SSH معرفی نشده. | بررسی فایل ``authorized_keys`` و لوگ‌های ``/var/log/auth.log``.|
+| ``Connection refused`` | سرویس SSH غیرفعال است یا پورت اشتباه وارد شده است. | بررسی وضعیت سرویس با ``systemctl status sshd`` و چک کردن فایروال.
+
+نحوه مشاهده لوگ‌های زنده برای عیب‌یابی:
+
+برای مشاهده رویدادها و خطاهای SFTP به صورت زنده در سرور دبیان/اوبونتو:
+
+``sudo tail -f /var/log/auth.log``
+
+در سرورهای RHEL/CentOS/Rocky Linux:
+
+``sudo tail -f /var/log/secure``
 
